@@ -14,6 +14,11 @@ Adafruit_NeoPixel pixels(1, PIN, NEO_GRB + NEO_KHZ800);
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 int result[6];
 int RelayPin = 4;
+unsigned long previousMillis = 0;  //will store last time LED was blinked
+const long period = 30000;         // period at which to blink in ms
+int R=0;
+int G=0;
+int B=0;
 
 
 
@@ -48,13 +53,25 @@ void setup() {
                    // Set RelayPin as an output pin
   pinMode(RelayPin, OUTPUT);
   digitalWrite(RelayPin, HIGH);
+  Serial.println(" * Fan off ");
+}
+
+void flasher(int RA,int GA,int BA) {
+  pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+  pixels.show();
+  Serial.print('-');
+  delay(300);
+  //Serial.print(' ');Serial.print(R);Serial.print(G);Serial.println(B);
+  pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
+  pixels.show();
+  delay(700);
 }
 
 
 void loop() {
   DateTime now = rtc.now();
 
-  Serial.println("Current Date & Time: ");
+  Serial.print("Current Date & Time: ");
   Serial.print(now.year(), DEC);
   Serial.print('/');
   Serial.print(now.month(), DEC);
@@ -63,84 +80,72 @@ void loop() {
   Serial.print(" (");
   Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
   Serial.print(") ");
-  Serial.print(now.hour(), DEC);
+  if (now.hour() < 10) {
+    Serial.print('0');
+    Serial.print(now.hour(), DEC);
+  } else
+    Serial.print(now.hour(), DEC);
   Serial.print(':');
-  Serial.print(now.minute(), DEC);
+  if (now.minute() < 10) {
+    Serial.print('0');
+    Serial.print(now.minute(), DEC);
+  } else
+    Serial.print(now.minute(), DEC);
   Serial.print(':');
-  Serial.print(now.second(), DEC);
-  Serial.println();
+  if (now.second() < 10) {
+    Serial.print('0');
+    Serial.print(now.second(), DEC);
+  } else
+    Serial.print(now.second(), DEC);
+  Serial.print(' ');
 
-  // Serial.println("Unix Time: ");
-  // Serial.print("elapsed ");
-  // Serial.print(now.unixtime());
-  // Serial.print(" seconds/");
-  // Serial.print(now.unixtime() / 86400L);
-  // Serial.println(" days since 1/1/1970");
-
-  // // calculate a date which is 7 days & 30 seconds into the future
-  // DateTime future(now + TimeSpan(7, 0, 0, 30));
-
-  // Serial.println("Future Date & Time (Now + 7days & 30s): ");
-  // Serial.print(future.year(), DEC);
-  // Serial.print('/');
-  // Serial.print(future.month(), DEC);
-  // Serial.print('/');
-  // Serial.print(future.day(), DEC);
-  // Serial.print(' ');
-  // Serial.print(future.hour(), DEC);
-  // Serial.print(':');
-  // Serial.print(future.minute(), DEC);
-  // Serial.print(':');
-  // Serial.print(future.second(), DEC);
-  // Serial.println();
-
-  Serial.println();
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);  // populate temp and humidity objects with fresh data
-  Serial.print("Temperature: ");
+  Serial.print(" Temperature: ");
   Serial.print(temp.temperature);
-  Serial.println(" degrees C");
+  Serial.print(" degrees C & ");
   Serial.print("Humidity: ");
   Serial.print(humidity.relative_humidity);
-  Serial.println("% rH");
+  Serial.print("% rH");
 
+  if (digitalRead(RelayPin) == LOW) {
+    if (temp.temperature < 34) {
+      R=150;G=0;B=150;
+      pixels.setPixelColor(0, pixels.Color(R, G, B));
+      digitalWrite(RelayPin, HIGH);
+      Serial.print(" * Fan off ");
+      pixels.show();
+    }
+  }
+  if (digitalRead(RelayPin) == HIGH) {
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    if (temp.temperature <= 30) {
+      R=0;G=150;B=0;
+      pixels.setPixelColor(0, pixels.Color(0, 150, 0));
+      digitalWrite(RelayPin, HIGH);
+      pixels.show();
+    }
+
+    if (temp.temperature > 30 && temp.temperature < 35) {
+      R=150;G=0;B=150;
+      pixels.setPixelColor(0, pixels.Color(R, G, B));
+      //digitalWrite(RelayPin, HIGH);
+      pixels.show();
+    }
+
+    if (temp.temperature >= 35) {
+      R=150;G=0;B=0;
+      pixels.setPixelColor(0, pixels.Color(R, G, B));
+      digitalWrite(RelayPin, LOW);
+      Serial.print(" * Fan on ");
+      pixels.show();
+    }
+  }
+  Serial.print(" ");
+  unsigned long currentMillis = millis();     // store the current time
+  while (currentMillis + 30000 > millis()) {  // check if 1000ms passed
+    flasher(R,G,B);
+  }
   Serial.println();
-  if( digitalRead(RelayPin)==LOW){
-      if (temp.temperature <35) {
-    pixels.setPixelColor(0, pixels.Color(0, 150, 0));
-    digitalWrite(RelayPin, HIGH);
-    pixels.show();
-  }
-  }
-  if( digitalRead(RelayPin)==HIGH){
-       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-  if (temp.temperature <= 30) {
-    pixels.setPixelColor(0, pixels.Color(0, 150, 0));
-    digitalWrite(RelayPin, HIGH);
-    pixels.show();
-  }
-
-  if (temp.temperature > 30 && temp.temperature < 36) {
-
-    pixels.setPixelColor(0, pixels.Color(150, 0, 150));
-    //digitalWrite(RelayPin, HIGH);
-    pixels.show();
-  }
-
-  if (temp.temperature >= 36) {
-
-    pixels.setPixelColor(0, pixels.Color(150, 0, 0));
-    digitalWrite(RelayPin, LOW);
-    pixels.show();
-  }
-  }
-for(int i=0;i<30;i++){
-  Serial.print('-');
-  delay(1000);
-}
-  Serial.println();
-  // if (Serial.available() > 0) {
-  //   String command = Serial.readString();
-  // }
 }
