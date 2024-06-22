@@ -16,9 +16,9 @@ int result[6];
 int RelayPin = 4;
 unsigned long previousMillis = 0;  //will store last time LED was blinked
 const long period = 30000;         // period at which to blink in ms
-int R=0;
-int G=0;
-int B=0;
+int R = 0;
+int G = 0;
+int B = 0;
 
 
 
@@ -50,27 +50,22 @@ void setup() {
     // rtc.adjust(DateTime(2017, 1, 27, 12, 56, 0));
   }
   pixels.begin();  // INITIALIZE NeoPixel strip object (REQUIRED)
-                   // Set RelayPin as an output pin
   pinMode(RelayPin, OUTPUT);
   digitalWrite(RelayPin, HIGH);
-  Serial.println(" * Fan off ");
 }
 
-void flasher(int RA,int GA,int BA) {
+void flasher(int RA, int GA, int BA) {
   pixels.setPixelColor(0, pixels.Color(0, 0, 0));
   pixels.show();
-  Serial.print('-');
-  delay(300);
-  //Serial.print(' ');Serial.print(R);Serial.print(G);Serial.println(B);
+  delay(1000);
   pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
   pixels.show();
-  delay(700);
+  delay(2000);
 }
 
 
 void loop() {
   DateTime now = rtc.now();
-
   Serial.print("Current Date & Time: ");
   Serial.print(now.year(), DEC);
   Serial.print('/');
@@ -99,7 +94,6 @@ void loop() {
     Serial.print(now.second(), DEC);
   Serial.print(' ');
 
-
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);  // populate temp and humidity objects with fresh data
   Serial.print(" Temperature: ");
@@ -108,44 +102,55 @@ void loop() {
   Serial.print("Humidity: ");
   Serial.print(humidity.relative_humidity);
   Serial.print("% rH");
+  if (digitalRead(RelayPin) == LOW)
+    Serial.print(" * Fan on ");
+  else
+    Serial.print(" * Fan off ");
 
   if (digitalRead(RelayPin) == LOW) {
     if (temp.temperature < 34) {
-      R=150;G=0;B=150;
+      R = 150;
+      G = 0;
+      B = 150;
       pixels.setPixelColor(0, pixels.Color(R, G, B));
       digitalWrite(RelayPin, HIGH);
-      Serial.print(" * Fan off ");
       pixels.show();
     }
   }
   if (digitalRead(RelayPin) == HIGH) {
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     if (temp.temperature <= 30) {
-      R=0;G=150;B=0;
+      R = 0;
+      G = 150;
+      B = 0;
       pixels.setPixelColor(0, pixels.Color(0, 150, 0));
       digitalWrite(RelayPin, HIGH);
       pixels.show();
     }
 
     if (temp.temperature > 30 && temp.temperature < 35) {
-      R=150;G=0;B=150;
+      R = 150;
+      G = 0;
+      B = 150;
       pixels.setPixelColor(0, pixels.Color(R, G, B));
       //digitalWrite(RelayPin, HIGH);
       pixels.show();
     }
 
     if (temp.temperature >= 35) {
-      R=150;G=0;B=0;
+      R = 150;
+      G = 0;
+      B = 0;
       pixels.setPixelColor(0, pixels.Color(R, G, B));
       digitalWrite(RelayPin, LOW);
-      Serial.print(" * Fan on ");
+
       pixels.show();
     }
   }
   Serial.print(" ");
   unsigned long currentMillis = millis();     // store the current time
-  while (currentMillis + 30000 > millis()) {  // check if 1000ms passed
-    flasher(R,G,B);
+  while (currentMillis + 10000 > millis()) {  // check if 1000ms passed
+    flasher(R, G, B);
   }
   Serial.println();
 }
