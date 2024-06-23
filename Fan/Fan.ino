@@ -19,6 +19,9 @@ const long period = 30000;         // period at which to blink in ms
 int R = 0;
 int G = 0;
 int B = 0;
+float maxtemp = 35;
+float maxleveltemp = 34;
+float Ntemp=0;
 
 
 
@@ -55,12 +58,23 @@ void setup() {
 }
 
 void flasher(int RA, int GA, int BA) {
-  pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-  pixels.show();
-  delay(1000);
-  pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
-  pixels.show();
-  delay(2000);
+  if (Ntemp < maxtemp) {
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+    pixels.show();
+    delay(1000);
+    pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
+    pixels.show();
+    delay(2000);
+  } else {
+    for (int i = 0; i < 4; i++) {
+      pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+      pixels.show();
+      delay(500);
+      pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
+      pixels.show();
+      delay(200);
+    }
+  }
 }
 
 
@@ -98,7 +112,8 @@ void loop() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);  // populate temp and humidity objects with fresh data
   Serial.print(" *Temperature: ");
-  Serial.print(temp.temperature);
+  Ntemp = temp.temperature;
+  Serial.print(Ntemp);
   Serial.print(" degrees C & ");
   Serial.print("*Humidity: ");
   Serial.print(humidity.relative_humidity);
@@ -109,7 +124,7 @@ void loop() {
     Serial.print(" *Fan off ");
 
   if (digitalRead(RelayPin) == LOW) {
-    if (temp.temperature < 34) {
+    if (temp.temperature < maxleveltemp) {
       R = 150;
       G = 0;
       B = 150;
@@ -129,7 +144,7 @@ void loop() {
       pixels.show();
     }
 
-    if (temp.temperature > 30 && temp.temperature < 35) {
+    if (temp.temperature > 30 && temp.temperature < maxtemp) {
       R = 150;
       G = 0;
       B = 150;
@@ -138,7 +153,7 @@ void loop() {
       pixels.show();
     }
 
-    if (temp.temperature >= 35) {
+    if (temp.temperature >= maxtemp) {
       R = 150;
       G = 0;
       B = 0;
