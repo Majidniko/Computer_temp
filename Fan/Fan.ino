@@ -66,7 +66,7 @@ void flasher(int RA, int GA, int BA) {
 
 void loop() {
   DateTime now = rtc.now();
-  Serial.print("Current Date & Time: ");
+  Serial.print("*Date: ");
   Serial.print(now.year(), DEC);
   Serial.print('/');
   Serial.print(now.month(), DEC);
@@ -75,6 +75,7 @@ void loop() {
   Serial.print(" (");
   Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
   Serial.print(") ");
+  Serial.print("*Time: ");
   if (now.hour() < 10) {
     Serial.print('0');
     Serial.print(now.hour(), DEC);
@@ -96,16 +97,16 @@ void loop() {
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);  // populate temp and humidity objects with fresh data
-  Serial.print(" Temperature: ");
+  Serial.print(" *Temperature: ");
   Serial.print(temp.temperature);
   Serial.print(" degrees C & ");
-  Serial.print("Humidity: ");
+  Serial.print("*Humidity: ");
   Serial.print(humidity.relative_humidity);
   Serial.print("% rH");
   if (digitalRead(RelayPin) == LOW)
-    Serial.print(" * Fan on ");
+    Serial.print(" *Fan on ");
   else
-    Serial.print(" * Fan off ");
+    Serial.print(" *Fan off ");
 
   if (digitalRead(RelayPin) == LOW) {
     if (temp.temperature < 34) {
