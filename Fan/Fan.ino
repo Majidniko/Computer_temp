@@ -66,13 +66,13 @@ void flasher(int RA, int GA, int BA) {
     pixels.show();
     delay(2000);
   } else {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 8; i++) {
       pixels.setPixelColor(0, pixels.Color(0, 0, 0));
       pixels.show();
-      delay(500);
+      delay(300);
       pixels.setPixelColor(0, pixels.Color(RA, GA, BA));
       pixels.show();
-      delay(200);
+      delay(100);
     }
   }
 }
