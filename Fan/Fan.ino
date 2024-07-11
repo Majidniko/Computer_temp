@@ -21,7 +21,8 @@ int G = 0;
 int B = 0;
 float maxtemp = 35;
 float maxleveltemp = 34;
-float Ntemp=0;
+float Ntemp = 0;
+float maxTemp, maxHum,minTemp, minHum;
 
 
 
@@ -55,6 +56,10 @@ void setup() {
   pixels.begin();  // INITIALIZE NeoPixel strip object (REQUIRED)
   pinMode(RelayPin, OUTPUT);
   digitalWrite(RelayPin, HIGH);
+  maxTemp = 0;
+  maxHum = 0;
+  minTemp = 101;
+  minHum = 101;
 }
 
 void flasher(int RA, int GA, int BA) {
@@ -75,6 +80,17 @@ void flasher(int RA, int GA, int BA) {
       delay(100);
     }
   }
+}
+
+void history(float temp, float humidiyt) {
+  if (temp > maxTemp)
+    maxTemp = temp;
+  if (temp < minTemp)
+    minTemp = temp;
+  if (humidiyt > maxHum)
+    maxHum = humidiyt;
+  if (humidiyt < minHum)
+    minHum = humidiyt;
 }
 
 
@@ -117,12 +133,13 @@ void loop() {
   Serial.print(" degrees C & ");
   Serial.print("*Humidity: ");
   Serial.print(humidity.relative_humidity);
+  history(temp.temperature, humidity.relative_humidity);
   Serial.print("% rH");
   if (digitalRead(RelayPin) == LOW)
     Serial.print(" *Fan on ");
   else
     Serial.print(" *Fan off ");
-
+  Serial.print(" (Max Temp: " + String(maxTemp) + ") (Min Temp: " + String(minTemp) + ") (Max Humidity: " + String(maxHum) + ") (Min Humidity: " + String(minHum)+")");
   if (digitalRead(RelayPin) == LOW) {
     if (temp.temperature < maxleveltemp) {
       R = 150;
@@ -133,6 +150,7 @@ void loop() {
       pixels.show();
     }
   }
+
   if (digitalRead(RelayPin) == HIGH) {
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     if (temp.temperature <= 30) {
