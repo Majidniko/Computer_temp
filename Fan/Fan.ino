@@ -22,7 +22,8 @@ int B = 0;
 float maxtemp = 35;
 float maxleveltemp = 34;
 float Ntemp = 0;
-float maxTemp, maxHum,minTemp, minHum;
+float maxTemp=0, maxHum=0,minTemp=101, minHum=101;
+
 
 
 
@@ -56,13 +57,11 @@ void setup() {
   pixels.begin();  // INITIALIZE NeoPixel strip object (REQUIRED)
   pinMode(RelayPin, OUTPUT);
   digitalWrite(RelayPin, HIGH);
-  maxTemp = 0;
-  maxHum = 0;
-  minTemp = 101;
-  minHum = 101;
+
 }
 
 void flasher(int RA, int GA, int BA) {
+  
   if (Ntemp < maxtemp) {
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
@@ -93,6 +92,12 @@ void history(float temp, float humidiyt) {
     minHum = humidiyt;
 }
 
+void test(){
+  digitalWrite(RelayPin, LOW);
+  for(int i=0;i<10;i++)
+      flasher(0,0,255);
+    digitalWrite(RelayPin, HIGH);
+}
 
 void loop() {
   DateTime now = rtc.now();
@@ -185,6 +190,20 @@ void loop() {
   unsigned long currentMillis = millis();     // store the current time
   while (currentMillis + 10000 > millis()) {  // check if 1000ms passed
     flasher(R, G, B);
+    if (Serial.available()){
+      Serial.println();
+      Serial.println("Command mode:");
+      delay(500);
+      String command = Serial.readString();
+      Serial.println(command + " Recived");
+      Serial.println(command.indexOf("test"));
+      if(command.indexOf("test")>=0){
+        Serial.println("Test is running...");
+          test();
+          Serial.println("Test Finished");
+      }
+      Serial.println("Exit command mode.");
+    }
   }
   Serial.println();
 }
